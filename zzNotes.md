@@ -24,11 +24,13 @@ cd vcpkg
 .\bootstrap-vcpkg.bat
 .\vcpkg install grpc protobuf curl nlohmann-json --triplet=x64-windows
 
-cmake -B build3 -G "Visual Studio 17 2022" ^
+cmake -B build -G "Visual Studio 17 2022" ^
 -A x64 -DCMAKE_BUILD_TYPE=Debug ^
 -DBUILD_TESTING=OFF ^
 -DWITH_OTLP_GRPC=ON  -DWITH_OTLP_HTTP=ON ^
 -DCMAKE_TOOLCHAIN_FILE="D:/vcpkg-git/scripts/buildsystems/vcpkg.cmake"
 
+Run this with admin permission
 cmake --build . --config Debug
-cmake --install . --prefix ../../otel-cpp --config Debug
+
+cmake --install . --prefix ../../otel-cpp-pkg --config Debug
