@@ -9,6 +9,7 @@ brew install protobuf
 /opt/homebrew/opt/protobuf    =>     /opt/homebrew/opt/protobuf
 
 cmake -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF \
+    -DWITH_EXAMPLES_HTTP \
     -DCMAKE_CXX_STANDARD=17 -DWITH_OTLP_GRPC=ON  -DWITH_OTLP_HTTP=ON
     
     -DCMAKE_PREFIX_PATH="/opt/homebrew/opt/grpc;/opt/homebrew/opt/protobuf"
@@ -30,6 +31,7 @@ cd vcpkg
 cmake -B build -G "Visual Studio 17 2022" ^
     -A x64 -DCMAKE_BUILD_TYPE=Debug ^
     -DBUILD_TESTING=OFF ^
+    -DWITH_EXAMPLES_HTTP=ON ^
     -DWITH_OTLP_GRPC=ON  -DWITH_OTLP_HTTP=ON ^
     -DCMAKE_TOOLCHAIN_FILE="D:/vcpkg-git/scripts/buildsystems/vcpkg.cmake"
 
