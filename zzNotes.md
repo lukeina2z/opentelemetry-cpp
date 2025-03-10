@@ -9,7 +9,7 @@ brew install protobuf
 /opt/homebrew/opt/protobuf    =>     /opt/homebrew/opt/protobuf
 
 cmake -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF \
-    -DWITH_EXAMPLES_HTTP \
+    -DWITH_EXAMPLES_HTTP=ON \
     -DCMAKE_CXX_STANDARD=17 -DWITH_OTLP_GRPC=ON  -DWITH_OTLP_HTTP=ON
     
     -DCMAKE_PREFIX_PATH="/opt/homebrew/opt/grpc;/opt/homebrew/opt/protobuf"
