@@ -1,7 +1,7 @@
 To build OTel Cpp library [Mac]
 ==============================
 clone git@github.com:lukeina2z/opentelemetry-cpp.git
-use branch 'lk01'
+use branch 'wk-01'
 
 brew install grpc
 brew --prefix grpc    =>   /opt/homebrew/opt/grpc
