@@ -10,6 +10,7 @@
 #include "opentelemetry/sdk/trace/exporter.h"
 #include "opentelemetry/sdk/trace/processor.h"
 #include "opentelemetry/sdk/trace/provider.h"
+#include <opentelemetry/sdk/trace/simple_processor.h>
 #include "opentelemetry/sdk/trace/simple_processor_factory.h"
 #include "opentelemetry/sdk/trace/tracer_context.h"
 #include "opentelemetry/sdk/trace/tracer_context_factory.h"
@@ -17,9 +18,14 @@
 #include "opentelemetry/trace/propagation/http_trace_context.h"
 #include "opentelemetry/trace/provider.h"
 
+#include <opentelemetry/exporters/otlp/otlp_http_exporter.h>
+#include "opentelemetry/exporters/otlp/otlp_http_exporter_factory.h"
+#include "opentelemetry/exporters/otlp/otlp_http_exporter_options.h"
+
 #include <grpcpp/grpcpp.h>
 #include <cstring>
 #include <iostream>
+#include <memory>
 #include <vector>
 
 using grpc::ClientContext;
@@ -75,11 +81,22 @@ public:
 
 void InitTracer()
 {
+
+  opentelemetry::exporter::otlp::OtlpHttpExporterOptions opts;
+  opts.url = "http://localhost/v1/traces";
+  // opts.url = "http://.com/v1/traces";
+ 
+  auto otlp_http_exporter = std::make_unique<opentelemetry::exporter::otlp::OtlpHttpExporter>(opts);
+  auto otlp_processor = std::make_unique<opentelemetry::sdk::trace::SimpleSpanProcessor>(
+      std::move(otlp_http_exporter));
+
+
   auto exporter = opentelemetry::exporter::trace::OStreamSpanExporterFactory::Create();
   auto processor =
       opentelemetry::sdk::trace::SimpleSpanProcessorFactory::Create(std::move(exporter));
   std::vector<std::unique_ptr<opentelemetry::sdk::trace::SpanProcessor>> processors;
   processors.push_back(std::move(processor));
+  processors.push_back(std::move(otlp_processor));
   // Default is an always-on sampler.
   std::unique_ptr<opentelemetry::sdk::trace::TracerContext> context =
       opentelemetry::sdk::trace::TracerContextFactory::Create(std::move(processors));
