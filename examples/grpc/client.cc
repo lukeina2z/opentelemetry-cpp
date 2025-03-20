@@ -61,12 +61,14 @@ public:
     ClientContext context;
     request.set_request("Nice to meet you!");
 
+    auto tracer = get_tracer("grpc-client");
+
     StartSpanOptions options;
     options.kind = SpanKind::kClient;
 
     std::string span_name = "GreeterClient/Greet";
     auto span =
-        get_tracer("grpc")->StartSpan(span_name,
+        tracer->StartSpan(span_name,
                                       {{semconv::rpc::kRpcSystem, "grpc"},
                                        {semconv::rpc::kRpcService, "grpc-example.GreetService"},
                                        {semconv::rpc::kRpcMethod, "Greet"},
@@ -74,7 +76,7 @@ public:
                                        {semconv::network::kNetworkPeerPort, port}},
                                       options);
 
-    auto scope = get_tracer("grpc-client")->WithActiveSpan(span);
+    auto scope = tracer->WithActiveSpan(span);
 
     // inject current context to grpc metadata
     auto current_ctx = context::RuntimeContext::GetCurrent();

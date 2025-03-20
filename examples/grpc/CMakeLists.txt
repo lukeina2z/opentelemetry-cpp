@@ -49,6 +49,7 @@ endif()
 foreach(_target client server)
   add_executable(${_target} "${_target}.cc")
   target_link_libraries(${_target} example_grpc_proto opentelemetry_trace
+                        opentelemetry_exporter_otlp_http
                         opentelemetry_exporter_ostream_span)
   patch_protobuf_targets(${_target})
 endforeach()
