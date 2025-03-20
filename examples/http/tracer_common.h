@@ -77,10 +77,12 @@ void InitTracer()
   // Set the global trace provider
   opentelemetry::sdk::trace::Provider::SetTracerProvider(provider);
 
+  auto pHttpTraceContext = new opentelemetry::trace::propagation::HttpTraceContext();
+
   // set global propagator
   opentelemetry::context::propagation::GlobalTextMapPropagator::SetGlobalPropagator(
       opentelemetry::nostd::shared_ptr<opentelemetry::context::propagation::TextMapPropagator>(
-          new opentelemetry::trace::propagation::HttpTraceContext()));
+          pHttpTraceContext));
 }
 
 void CleanupTracer()
