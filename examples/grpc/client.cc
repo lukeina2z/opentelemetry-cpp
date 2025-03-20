@@ -110,7 +110,7 @@ private:
 void RunClient(uint16_t port)
 {
   GreeterClient greeter(
-      grpc::CreateChannel("0.0.0.0:" + std::to_string(port), grpc::InsecureChannelCredentials()));
+      grpc::CreateChannel("localhost:" + std::to_string(port), grpc::InsecureChannelCredentials()));
   std::string response = greeter.Greet("0.0.0.0", port);
   std::cout << "grpc_server says: " << response << '\n';
 }

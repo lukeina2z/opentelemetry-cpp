@@ -106,7 +106,7 @@ public:
 
 void RunServer(uint16_t port)
 {
-  std::string address("0.0.0.0:" + std::to_string(port));
+  std::string address("localhost:" + std::to_string(port));
   GreeterServer service;
   ServerBuilder builder;
 
