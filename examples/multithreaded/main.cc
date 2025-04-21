@@ -58,7 +58,7 @@ void run_threads()
 
   std::vector<std::thread> threads;
   threads.reserve(5);
-  for (int thread_num = 0; thread_num < 5; ++thread_num)
+  for (int thread_num = 0; thread_num < 1; ++thread_num)
   {
     // This shows how one can effectively use Scope objects to correctly
     // parent spans across threads.

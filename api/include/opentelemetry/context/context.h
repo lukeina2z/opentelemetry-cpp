@@ -44,7 +44,7 @@ public:
   template <class T>
   Context SetValues(T &values) noexcept
   {
-    Context context                  = Context(values);
+    Context context = Context(values);
     nostd::shared_ptr<DataList> last = context.head_;
     while (last->next_ != nullptr)
     {
@@ -59,7 +59,7 @@ public:
   // exisiting list to the end of the new list.
   Context SetValue(nostd::string_view key, ContextValue value) noexcept
   {
-    Context context      = Context(key, value);
+    Context context = Context(key, value);
     context.head_->next_ = head_;
     return context;
   }
@@ -100,7 +100,7 @@ private:
 
     ContextValue value_;
 
-    DataList() = default;
+    DataList() = delete;
 
     // Builds a data list off of a key and value iterable and returns the head
     template <class T>
@@ -118,7 +118,7 @@ private:
         else
         {
           node->next_ = nostd::shared_ptr<DataList>(new DataList(iter.first, iter.second));
-          node        = node->next_.get();
+          node = node->next_.get();
         }
       }
     }
@@ -127,7 +127,7 @@ private:
     // and returns that head.
     DataList(nostd::string_view key, const ContextValue &value)
     {
-      key_        = new char[key.size()];
+      key_ = new char[key.size()];
       key_length_ = key.size();
       std::memcpy(key_, key.data(), key.size() * sizeof(char));
       next_  = nostd::shared_ptr<DataList>{nullptr};
@@ -146,8 +146,8 @@ private:
     DataList &operator=(DataList &&other) noexcept
     {
       key_length_ = other.key_length_;
-      value_      = std::move(other.value_);
-      next_       = std::move(other.next_);
+      value_ = std::move(other.value_);
+      next_ = std::move(other.next_);
 
       key_       = other.key_;
       other.key_ = nullptr;

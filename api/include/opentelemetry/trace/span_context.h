@@ -49,7 +49,13 @@ public:
         trace_flags_(trace_flags),
         is_remote_(is_remote),
         trace_state_(std::move(trace_state))
-  {}
+  {
+    std::string s1 = this->trace_state_.get()->ToHeader();
+    if (!s1.empty())
+    {
+      s1 += "\t hey!";
+    }
+  }
 
   SpanContext(const SpanContext &ctx) = default;
 
