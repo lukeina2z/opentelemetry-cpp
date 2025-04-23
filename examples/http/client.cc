@@ -20,12 +20,16 @@
 #include "opentelemetry/trace/tracer.h"
 #include "tracer_common.h"
 
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <map>
 #include <string>
 #include <type_traits>
 #include <utility>
+
+#include "opentelemetry/sdk/common/global_log_handler.h"
+
 
 namespace
 {
@@ -95,6 +99,11 @@ void sendRequest(const std::string &url)
 
 int main(int argc, char *argv[])
 {
+  {
+    using namespace opentelemetry::sdk::common::internal_log;
+    GlobalLogHandler::SetLogLevel(LogLevel::Debug);
+  }
+
   InitTracer();
   constexpr char default_host[]   = "localhost";
   constexpr char default_path[]   = "/helloworld";

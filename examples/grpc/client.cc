@@ -38,6 +38,12 @@
 #  include "messages.pb.h"
 #endif
 
+#include "opentelemetry/semconv/incubating/rpc_attributes.h"
+#include "opentelemetry/semconv/network_attributes.h"
+#include "tracer_common.h"
+
+#include "opentelemetry/sdk/common/global_log_handler.h"
+
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;
@@ -123,6 +129,11 @@ void RunClient(uint16_t port)
 
 int main(int argc, char **argv)
 {
+  {
+    using namespace opentelemetry::sdk::common::internal_log;
+    GlobalLogHandler::SetLogLevel(LogLevel::Debug);
+  }
+
   InitTracer();
   // set global propagator
   context::propagation::GlobalTextMapPropagator::SetGlobalPropagator(
