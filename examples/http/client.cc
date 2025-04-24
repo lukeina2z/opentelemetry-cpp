@@ -118,7 +118,15 @@ int main(int argc, char *argv[])
 
   std::string url = "http://" + std::string(default_host) + ":" + std::to_string(port) +
                     std::string(default_path);
-  sendRequest(url);
+
+  int count = 60;
+  while (count > 0)
+  {
+    sendRequest(url);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    --count;
+  }
+
   CleanupTracer();
   return 0;
 }

@@ -15,8 +15,11 @@
 #include "opentelemetry/sdk/trace/exporter.h"
 #include "opentelemetry/sdk/trace/processor.h"
 #include "opentelemetry/sdk/trace/provider.h"
+
+#include "opentelemetry/sdk/trace/batch_span_processor.h"
 #include <opentelemetry/sdk/trace/simple_processor.h>
 #include "opentelemetry/sdk/trace/simple_processor_factory.h"
+
 #include "opentelemetry/sdk/trace/tracer_context.h"
 #include "opentelemetry/sdk/trace/tracer_context_factory.h"
 #include "opentelemetry/sdk/trace/tracer_provider_factory.h"
@@ -79,20 +82,25 @@ void InitTracer()
   opts.content_type  = opentelemetry::exporter::otlp::HttpRequestContentType::kJson;
   // opts.content_type  = opentelemetry::exporter::otlp::HttpRequestContentType::kBinary;
 
-
   auto otlp_http_exporter = std::make_unique<opentelemetry::exporter::otlp::OtlpHttpExporter>(opts);
   auto otlp_http_processor = std::make_unique<opentelemetry::sdk::trace::SimpleSpanProcessor>(
   std::move(otlp_http_exporter));
 
-  auto exporter = opentelemetry::exporter::trace::OStreamSpanExporterFactory::Create();
-  auto processor =
-      opentelemetry::sdk::trace::SimpleSpanProcessorFactory::Create(std::move(exporter));
+  auto ostream_exporter = opentelemetry::exporter::trace::OStreamSpanExporterFactory::Create();
+
+  opentelemetry::sdk::trace::BatchSpanProcessorOptions options;
+  options.max_queue_size = 10;
+  options.schedule_delay_millis = std::chrono::milliseconds(3000);
+  options.max_export_batch_size = 3;
+
+  auto ostream_processor = std::make_unique<opentelemetry::sdk::trace::BatchSpanProcessor>(std::move(ostream_exporter), options);
+  // auto ostream_processor = opentelemetry::sdk::trace::SimpleSpanProcessorFactory::Create(std::move(ostream_exporter));
+
   std::vector<std::unique_ptr<opentelemetry::sdk::trace::SpanProcessor>> processors;
-  
-  processors.push_back(std::move(processor));
+  processors.push_back(std::move(ostream_processor));
   processors.push_back(std::move(otlp_http_processor));
 
-  auto resource_attributes = opentelemetry::sdk::resource::ResourceAttributes{{"service.name", "http-sample-cpp-otel"}};
+  auto resource_attributes = opentelemetry::sdk::resource::ResourceAttributes{{"service.name", "cppOTel-Example-HttpClient"}};
   auto resource_ptr = opentelemetry::sdk::resource::Resource::Create(resource_attributes);
 
   // Default is an always-on sampler.
