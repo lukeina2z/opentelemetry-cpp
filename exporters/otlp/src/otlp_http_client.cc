@@ -24,6 +24,14 @@
 #  include <assert.h>
 #endif
 
+
+#include <fstream>
+#include <vector>
+#include <cstdlib>  // for getenv
+#include <string>
+#include <stdexcept> // for std::runtime_error
+#include <cstdint>   // for uint8_t
+
 #include "nlohmann/json.hpp"
 #include "opentelemetry/common/timestamp.h"
 #include "opentelemetry/exporters/otlp/otlp_http.h"
@@ -881,6 +889,32 @@ void OtlpHttpClient::ReleaseSession(
   }
 }
 
+
+using Byte = uint8_t;
+void saveBytesToFile(const std::vector<Byte> &data)
+{
+  //const char *homeDir = std::getenv("HOME");
+  //if (homeDir == nullptr)
+  //{
+  //  throw std::runtime_error("Cannot find HOME environment variable");
+  //}
+
+  //std::string filePath = std::string(homeDir) + "/otlp-cpp.bin";
+  std::string filePath = "otlp-cpp.bin";
+  
+  std::ofstream outFile(filePath, std::ios::binary);
+  if (!outFile)
+  {
+    throw std::runtime_error("Failed to open file: " + filePath);
+  }
+
+  outFile.write(reinterpret_cast<const char *>(data.data()), data.size());
+  outFile.close();
+}
+
+
+
+
 opentelemetry::nostd::variant<opentelemetry::sdk::common::ExportResult,
                               OtlpHttpClient::HttpSessionData>
 OtlpHttpClient::createSession(
@@ -921,6 +955,8 @@ OtlpHttpClient::createSession(
   {
     if (SerializeToHttpBody(body_vec, message))
     {
+      saveBytesToFile(body_vec);
+
       if (options_.console_debug)
       {
         OTEL_INTERNAL_LOG_DEBUG(

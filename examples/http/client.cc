@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
   std::string url = "http://" + std::string(default_host) + ":" + std::to_string(port) +
                     std::string(default_path);
 
-  int count = 60;
+  int count = 3;
   while (count > 0)
   {
     sendRequest(url);
