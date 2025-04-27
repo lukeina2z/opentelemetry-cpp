@@ -1,7 +1,7 @@
 To build OTel Cpp library [Mac]
 ==============================
 clone git@github.com:lukeina2z/opentelemetry-cpp.git
-use branch 'wk-01'
+use branch 'lk-main'
 
 brew install grpc
 brew --prefix grpc    =>   /opt/homebrew/opt/grpc
@@ -15,7 +15,7 @@ cmake -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF \
     -DCMAKE_PREFIX_PATH="/opt/homebrew/opt/grpc;/opt/homebrew/opt/protobuf"
 
 cd build
-sudo cmake --build .
+cmake --build .
 
 cmake --install . --prefix ../../otel-cpp-pkg --config Debug
 

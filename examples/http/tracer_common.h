@@ -74,7 +74,7 @@ public:
 
 void InitTracer()
 {
-  const std::string ingestionSvc = "http://.compute.amazonaws.com";
+  const std::string ingestionSvc = "http://ec2-52-35-100-41.us-west-2.compute.amazonaws.com";
 
   opentelemetry::exporter::otlp::OtlpHttpExporterOptions opts;
   opts.url = ingestionSvc + "/v1/traces";

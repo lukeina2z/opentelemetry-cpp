@@ -893,14 +893,14 @@ void OtlpHttpClient::ReleaseSession(
 using Byte = uint8_t;
 void saveBytesToFile(const std::vector<Byte> &data)
 {
-  //const char *homeDir = std::getenv("HOME");
-  //if (homeDir == nullptr)
-  //{
-  //  throw std::runtime_error("Cannot find HOME environment variable");
-  //}
+  const char *homeDir = std::getenv("HOME");
+  if (homeDir == nullptr)
+  {
+   throw std::runtime_error("Cannot find HOME environment variable");
+  }
 
-  //std::string filePath = std::string(homeDir) + "/otlp-cpp.bin";
-  std::string filePath = "otlp-cpp.bin";
+  std::string filePath = std::string(homeDir) + "/otlp-cpp.bin";
+  // std::string filePath = "otlp-cpp.bin";
   
   std::ofstream outFile(filePath, std::ios::binary);
   if (!outFile)
