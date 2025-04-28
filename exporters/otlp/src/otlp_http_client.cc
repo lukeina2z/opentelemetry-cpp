@@ -899,7 +899,7 @@ void saveBytesToFile(const std::vector<Byte> &data)
    throw std::runtime_error("Cannot find HOME environment variable");
   }
 
-  std::string filePath = std::string(homeDir) + "/otlp-cpp.bin";
+  std::string filePath = std::string(homeDir) + "/cpp-otlp.bin";
   // std::string filePath = "otlp-cpp.bin";
   
   std::ofstream outFile(filePath, std::ios::binary);

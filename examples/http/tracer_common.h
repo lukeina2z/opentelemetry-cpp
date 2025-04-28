@@ -79,8 +79,9 @@ void InitTracer()
   opentelemetry::exporter::otlp::OtlpHttpExporterOptions opts;
   opts.url = ingestionSvc + "/v1/traces";
   opts.console_debug = true;
-  // opts.content_type  = opentelemetry::exporter::otlp::HttpRequestContentType::kJson;
-  opts.content_type  = opentelemetry::exporter::otlp::HttpRequestContentType::kBinary;
+  
+  opts.content_type  = opentelemetry::exporter::otlp::HttpRequestContentType::kJson;
+  // opts.content_type  = opentelemetry::exporter::otlp::HttpRequestContentType::kBinary;
 
   auto otlp_http_exporter = std::make_unique<opentelemetry::exporter::otlp::OtlpHttpExporter>(opts);
   auto otlp_http_processor = std::make_unique<opentelemetry::sdk::trace::SimpleSpanProcessor>(

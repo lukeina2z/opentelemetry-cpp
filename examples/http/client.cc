@@ -56,6 +56,12 @@ void sendRequest(const std::string &url)
                                {semconv::url::kUrlScheme, url_parser.scheme_},
                                {semconv::http::kHttpRequestMethod, "GET"}},
                               options);
+
+  span->SetAttribute("zzz.string", "GET");
+  span->SetAttribute("zzz.integer32", 200);
+  span->SetAttribute("zzz.bool", false);
+  span->SetAttribute("zzz.double", 3.678);
+
   auto scope = get_tracer("http-client")->WithActiveSpan(span);
 
   // inject current context into http header
