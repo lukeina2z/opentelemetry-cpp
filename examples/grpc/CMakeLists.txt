@@ -61,8 +61,15 @@ foreach(_target client server)
   add_executable(${_target} "${_target}.cc")
   target_link_libraries(
     ${_target} PRIVATE example_grpc_proto
-                       opentelemetry_exporter_otlp_grpc
-                       opentelemetry_exporter_otlp_http
                        opentelemetry_exporter_ostream_span
                        opentelemetry-cpp::ostream_span_exporter)
+
+  # tracer_common.h uses OTLP exporters. Link them when available so their
+  # public include dirs are on the compile line.
+  if(TARGET opentelemetry_exporter_otlp_grpc)
+    target_link_libraries(${_target} PRIVATE opentelemetry_exporter_otlp_grpc)
+  endif()
+  if(TARGET opentelemetry_exporter_otlp_http)
+    target_link_libraries(${_target} PRIVATE opentelemetry_exporter_otlp_http)
+  endif()
 endforeach()
