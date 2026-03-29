@@ -48,7 +48,7 @@ public:
   {
     StartSpanOptions options;
     options.kind          = SpanKind::kServer;  // server
-    std::string span_name = request.uri;
+    std::string span_name = "Server Response " + request.uri;
 
     // extract context from http header
     std::map<std::string, std::string> &request_headers =
@@ -81,6 +81,11 @@ public:
     {
       span->AddEvent("Processing request");
       response.headers[HTTP_SERVER_NS::CONTENT_TYPE] = HTTP_SERVER_NS::CONTENT_TYPE_TEXT;
+      {
+        auto spanChild = get_tracer("http-server")->StartSpan("Child-of-HelloWorld");
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+        spanChild->End();
+      }
       span->End();
       return 200;
     }
@@ -92,7 +97,7 @@ public:
 
 int main(int argc, char *argv[])
 {
-  InitTracer();
+  InitTracer("cppOTel-Example-HttpServer");
 
   // The port the validation service listens to can be specified via the command line.
   if (argc > 1)

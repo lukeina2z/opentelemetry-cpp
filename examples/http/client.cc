@@ -17,6 +17,7 @@
 #include "opentelemetry/trace/span.h"
 #include "opentelemetry/trace/span_metadata.h"
 #include "opentelemetry/trace/span_startoptions.h"
+#include "opentelemetry/sdk/common/global_log_handler.h"
 #include "opentelemetry/trace/tracer.h"
 #include "tracer_common.h"
 
@@ -47,13 +48,19 @@ void sendRequest(const std::string &url)
   options.kind = SpanKind::kClient;  // client
   opentelemetry::ext::http::common::UrlParser url_parser(url);
 
-  std::string span_name = url_parser.path_;
+  std::string span_name = "Client Call " + url_parser.path_;
   auto span             = get_tracer("http-client")
                   ->StartSpan(span_name,
                               {{semconv::url::kUrlFull, url_parser.url_},
                                {semconv::url::kUrlScheme, url_parser.scheme_},
                                {semconv::http::kHttpRequestMethod, "GET"}},
                               options);
+
+  span->SetAttribute("zzz.string", "GET");
+  span->SetAttribute("zzz.integer32", 200);
+  span->SetAttribute("zzz.bool", false);
+  span->SetAttribute("zzz.double", 3.678);
+
   auto scope = get_tracer("http-client")->WithActiveSpan(span);
 
   // inject current context into http header
@@ -97,7 +104,12 @@ void sendRequest(const std::string &url)
 
 int main(int argc, char *argv[])
 {
-  InitTracer();
+  {
+    using namespace opentelemetry::sdk::common::internal_log;
+    GlobalLogHandler::SetLogLevel(LogLevel::Debug);
+  }
+
+  InitTracer("cppOTel-Example-HttpClient");
   constexpr char default_host[]   = "localhost";
   constexpr char default_path[]   = "/helloworld";
   constexpr uint16_t default_port = 8800;
@@ -111,7 +123,15 @@ int main(int argc, char *argv[])
 
   std::string url = "http://" + std::string(default_host) + ":" + std::to_string(port) +
                     std::string(default_path);
-  sendRequest(url);
+
+  int count = 1;
+  while (count > 0)
+  {
+    sendRequest(url);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    --count;
+  }
+
   CleanupTracer();
   return 0;
 }

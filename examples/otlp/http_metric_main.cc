@@ -41,6 +41,7 @@ otlp_exporter::OtlpHttpMetricExporterOptions exporter_options;
 
 void InitMetrics()
 {
+  exporter_options.content_type = otlp_exporter::HttpRequestContentType::kJson;
   auto exporter = otlp_exporter::OtlpHttpMetricExporterFactory::Create(exporter_options);
 
   std::string version{"1.2.0"};

@@ -1,0 +1,24 @@
+curl -X POST ^
+	-H "Content-Type: application/x-protobuf" ^
+	-H "User-Agent: OTel-OTLP-Exporter-Cpp/1.20.0" ^
+  	--data-binary @"otlp-cpp_bak.bin" ^
+	-i http://ec2-52-35-100-41.us-west-2.compute.amazonaws.com/v1/traces ^
+	--output -
+
+
+
+
+curl -X POST \
+        -H "Content-Type: application/x-protobuf" \
+        -H "User-Agent: OTel-OTLP-Exporter-Cpp/1.20.0" \
+        --data-binary @"./otlp-cpp_bak.bin" \
+        -i http://ec2-52-35-100-41.us-west-2.compute.amazonaws.com/v1/traces \
+        --output -
+
+curl -X POST \
+        -H "Content-Type: application/x-protobuf" \
+        -H "User-Agent: OTel-OTLP-Exporter-Cpp/1.20.0" \
+        --data-binary @"/Users/lukezha/otlp-cpp.bin" \
+        -i http://ec2-52-35-100-41.us-west-2.compute.amazonaws.com/v1/traces \
+        --output -
+

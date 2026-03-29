@@ -41,7 +41,14 @@ void f2()
 
 void foo_library()
 {
-  auto scoped_span = trace::Scope(get_tracer()->StartSpan("library"));
+  // auto scoped_span = trace::Scope(get_tracer()->StartSpan("library"));
 
-  f2();
+  auto tracer = get_tracer();
+  auto span = tracer->StartSpan("HandleRequest");
+  {
+    auto scope = tracer->WithActiveSpan(span);
+
+    f2();
+  }
+  span->End();
 }

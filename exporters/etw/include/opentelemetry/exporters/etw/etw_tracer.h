@@ -184,6 +184,8 @@ private:
    */
   ETWProvider::EventFormat encoding;
 
+    std::atomic<bool> isClosed_{true};
+    
   /**
    * @brief Provider Handle
    */
@@ -191,7 +193,7 @@ private:
 
   opentelemetry::trace::TraceId traceId_;
 
-  std::atomic<bool> isClosed_{true};
+  // std::atomic<bool> isClosed_{true};
 
   /**
    * @brief ETWProvider is a singleton that aggregates all ETW writes.
