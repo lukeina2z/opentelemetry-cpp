@@ -304,11 +304,9 @@ public:
       auto &value = kv.second;
       switch (value.index())
       {
-        case exporter_etw::PropertyType::kTypeBool: {
-          UINT8 temp = static_cast<UINT8>(nostd::get<bool>(value));
-          jObj[name] = temp;
+        case exporter_etw::PropertyType::kTypeBool:
+          jObj[name] = nostd::get<bool>(value);
           break;
-        }
         case exporter_etw::PropertyType::kTypeInt: {
           auto temp  = nostd::get<int32_t>(value);
           jObj[name] = temp;
@@ -368,17 +366,13 @@ public:
       }
     }
 
-    // forwardMessage.push_back(nameField);
     nlohmann::json payloadPair = nlohmann::json::array();
-
     payloadPair.push_back(
         utils::GetMsgPackEventTimeFromSystemTimestamp(std::chrono::system_clock::now()));
     payloadPair.push_back(jObj);
 
     nlohmann::json payloadArray = nlohmann::json::array({payloadPair});
-
     nlohmann::json forwardMessage = nlohmann::json::array({eventName, payloadArray});
-
     std::vector<uint8_t> v = nlohmann::json::to_msgpack(forwardMessage);
 
     EVENT_DESCRIPTOR evtDescriptor;
@@ -619,6 +613,7 @@ public:
   static const REGHANDLE INVALID_HANDLE = _UI64_MAX;
 
 protected:
+
   const unsigned int LargeEventSizeKB = 62;
 
   const GUID NULL_GUID = {0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0}};

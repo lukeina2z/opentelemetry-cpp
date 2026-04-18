@@ -4,9 +4,18 @@
 #ifdef _WIN32
 
 #  include <gtest/gtest.h>
+#  include <cstdint>
 #  include <map>
+#  include <nlohmann/json.hpp>
 #  include <set>
 #  include <string>
+#  include <vector>
+
+#  ifdef HAVE_MSGPACK
+#    define _EVNT_SOURCE_
+#    define EventWrite TestEventWrite
+#    define EventWriteTransfer TestEventWriteTransfer
+#  endif
 
 #  define OPENTELEMETRY_ATTRIBUTE_TIMESTAMP_PREVIEW
 
@@ -14,9 +23,46 @@
 #  include "opentelemetry/exporters/etw/etw_tracer_exporter.h"
 #  include "opentelemetry/sdk/trace/simple_processor.h"
 
+#  ifdef HAVE_MSGPACK
+#    undef _EVNT_SOURCE_
+#    undef EventWrite
+#    undef EventWriteTransfer
+#  endif
+
 using namespace OPENTELEMETRY_NAMESPACE;
 
 using namespace opentelemetry::exporter::etw;
+
+#  ifdef HAVE_MSGPACK
+namespace
+{
+std::vector<std::uint8_t> g_last_msgpack_payload;
+}
+
+ULONG EVNTAPI TestEventWrite(REGHANDLE /*RegHandle*/,
+                             PCEVENT_DESCRIPTOR /*EventDescriptor*/,
+                             ULONG UserDataCount,
+                             PEVENT_DATA_DESCRIPTOR UserData)
+{
+  g_last_msgpack_payload.clear();
+  if (UserDataCount > 0)
+  {
+    auto *payload = reinterpret_cast<const std::uint8_t *>(UserData[0].Ptr);
+    g_last_msgpack_payload.assign(payload, payload + UserData[0].Size);
+  }
+  return ERROR_SUCCESS;
+}
+
+ULONG EVNTAPI TestEventWriteTransfer(REGHANDLE RegHandle,
+                                     PCEVENT_DESCRIPTOR EventDescriptor,
+                                     LPCGUID /*ActivityId*/,
+                                     LPCGUID /*RelatedActivityId*/,
+                                     ULONG UserDataCount,
+                                     PEVENT_DATA_DESCRIPTOR UserData)
+{
+  return TestEventWrite(RegHandle, EventDescriptor, UserDataCount, UserData);
+}
+#  endif
 
 // The ETW provider ID is {4533CB59-77E2-54E9-E340-F0F0549058B7}
 const char *kGlobalProviderName = "OpenTelemetry-ETW-TLD";
@@ -195,6 +241,54 @@ TEST(ETWLogger, LoggerCheckWithTimestampAttributes)
   EXPECT_NO_THROW(
       logger->Debug("This is a debug log body", opentelemetry::common::MakeAttributes(attribs)));
 }
+
+TEST(ETWLogger, LoggerProviderRecognizesMsgPackEncodingAliases)
+{
+  const char *encodings[] = {"MSGPACK", "MsgPack", "MessagePack"};
+  for (const auto *encoding : encodings)
+  {
+    exporter::etw::TelemetryProviderOptions options = {{"encoding", std::string(encoding)}};
+    exporter::etw::LoggerProvider lp{options};
+    EXPECT_EQ(lp.config_.encoding, ETWProvider::EventFormat::ETW_MSGPACK);
+  }
+}
+
+#  ifdef HAVE_MSGPACK
+TEST(ETWLogger, LoggerEmitsMsgPackPayloadWhenConfigured)
+{
+  exporter::etw::TelemetryProviderOptions options = {{"encoding", std::string("MsgPack")}};
+  exporter::etw::LoggerProvider lp{options};
+  auto logger = lp.GetLogger("MsgPackLogger");
+
+  g_last_msgpack_payload.clear();
+
+  EXPECT_NO_THROW(
+      logger->EmitLogRecord(opentelemetry::logs::Severity::kDebug, "This is msgpack logger body"));
+  ASSERT_FALSE(g_last_msgpack_payload.empty());
+
+  auto decoded              = nlohmann::json::from_msgpack(g_last_msgpack_payload);
+  const auto &forwardName   = decoded.at(0);
+  const auto &payloadObject = decoded.at(1).at(0).at(1);
+
+  ASSERT_TRUE(forwardName.is_string());
+  EXPECT_EQ(forwardName.get<std::string>(), ETW_VALUE_LOG);
+
+  ASSERT_TRUE(payloadObject.at(ETW_FIELD_PAYLOAD_NAME).is_string());
+  EXPECT_EQ(payloadObject.at(ETW_FIELD_PAYLOAD_NAME).get<std::string>(), "MsgPackLogger");
+
+  ASSERT_TRUE(payloadObject.at(ETW_FIELD_LOG_BODY).is_string());
+  EXPECT_EQ(payloadObject.at(ETW_FIELD_LOG_BODY).get<std::string>(), "This is msgpack logger body");
+
+  ASSERT_TRUE(payloadObject.at(ETW_FIELD_LOG_SEVERITY_TEXT).is_string());
+  EXPECT_EQ(payloadObject.at(ETW_FIELD_LOG_SEVERITY_TEXT).get<std::string>(), "DEBUG");
+
+  ASSERT_TRUE(payloadObject.at(ETW_FIELD_LOG_SEVERITY_NUM).is_number_unsigned());
+  EXPECT_EQ(payloadObject.at(ETW_FIELD_LOG_SEVERITY_NUM).get<uint32_t>(),
+            static_cast<uint32_t>(opentelemetry::logs::Severity::kDebug));
+
+  ASSERT_TRUE(payloadObject.at(ETW_FIELD_TIMESTAMP).is_string());
+}
+#  endif
 
 /**
  * @brief Test that LogRecord created within an active span context
