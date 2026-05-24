@@ -31,3 +31,13 @@ target_link_libraries(
                     opentelemetry_exporter_etw
                     opentelemetry_exporter_otlp_http
                     opentelemetry-cpp::ostream_span_exporter)
+
+if(WIN32)
+  add_custom_command(
+    TARGET example_geneva-trace
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "$<TARGET_RUNTIME_DLLS:example_geneva-trace>"
+            "$<TARGET_FILE_DIR:example_geneva-trace>"
+    COMMAND_EXPAND_LISTS)
+endif()
