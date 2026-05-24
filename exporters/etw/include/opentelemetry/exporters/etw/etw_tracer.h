@@ -1153,6 +1153,31 @@ public:
   }
 
   /**
+   * @brief Cache of Tracers handed out by GetTracer(), keyed by name.
+   *
+   * The ETW Span class stores its parent Tracer as a raw reference
+   * (Tracer &owner_); if the only strong refcount on the Tracer is the
+   * nostd::shared_ptr returned by GetTracer(), the Tracer is destroyed
+   * as soon as the caller drops it, leaving every Span derived from it
+   * with a dangling owner_ that crashes on End(). Cache here so the
+   * provider keeps the Tracer alive as long as it is alive itself,
+   * matching the lifetime contract used by sdk::trace::TracerProvider.
+   *
+   * Growth: this cache is unbounded by design and mirrors
+   * sdk::trace::TracerProvider's tracers_ vector. Eviction is unsafe
+   * because the ETW Span stores its parent Tracer by raw reference, so
+   * dropping a Tracer that still has outstanding Spans would
+   * re-introduce the use-after-free this cache exists to prevent.
+   *
+   * In practice the cache stays small because the ETW exporter is
+   * designed around "one Tracer per ETW provider name, reused for the
+   * process/component lifetime" -- and Windows itself caps the number
+   * of registered ETW providers per process well below any RAM concern.
+   */
+  std::map<std::string, std::shared_ptr<opentelemetry::trace::Tracer>> tracers_;
+  std::mutex tracers_lock_;
+
+  /**
    * @brief Obtain ETW Tracer.
    * @param name ProviderId (instrumentation name) - Name or GUID
    *
@@ -1177,9 +1202,19 @@ public:
     UNREFERENCED_PARAMETER(args);
     UNREFERENCED_PARAMETER(schema_url);
     ETWProvider::EventFormat evtFmt = config_.encoding;
-    std::shared_ptr<opentelemetry::trace::Tracer> tracer{new (std::nothrow)
-                                                             Tracer(*this, name, evtFmt)};
-    return nostd::shared_ptr<opentelemetry::trace::Tracer>{tracer};
+    // Cache Tracers by name. The exporter Span class holds a raw
+    // Tracer& as owner_, so the Tracer must live at least as long as
+    // the longest-lived Span derived from it. Without caching, each
+    // GetTracer() call mints a fresh heap Tracer that is destroyed the
+    // moment the caller drops the returned shared_ptr, orphaning any
+    // outstanding Spans (use-after-free in Span::End()).
+    std::lock_guard<std::mutex> lock(tracers_lock_);
+    auto &cached = tracers_[std::string{name.data(), name.size()}];
+    if (!cached)
+    {
+      cached.reset(new (std::nothrow) Tracer(*this, name, evtFmt));
+    }
+    return nostd::shared_ptr<opentelemetry::trace::Tracer>{cached};
   }
 };
 
