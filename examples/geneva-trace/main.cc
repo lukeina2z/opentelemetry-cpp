@@ -236,8 +236,24 @@ void TestOtlpExporter()
   // logger->Info("Hello World!");
 }
 
+// https://github.com/open-telemetry/opentelemetry-cpp/issues/3849
+void repro_crash_github_3849()
+{
+  auto traceProvider = std::make_unique<opentelemetry::exporter::etw::TracerProvider>();
+  auto tracer        = traceProvider->GetTracer("Geneva-Tracer-Foo");
+  auto spanFoo       = tracer->StartSpan("Span-Foo");
+  tracer             = traceProvider->GetTracer("Geneva-Tracer-Bar");
+  auto spanBar       = tracer->StartSpan("Span-Bar");
+  spanFoo->End();
+  spanBar->End();
+}
+
 int main()
 {
+  {
+    repro_crash_github_3849();
+  }
+
   TestEtwExporter();
 
   TestOtlpExporter();
