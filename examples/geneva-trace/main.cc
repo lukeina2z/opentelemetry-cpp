@@ -93,7 +93,7 @@ std::shared_ptr<opentelemetry::trace::TracerProvider> CreateEtwTraceProvider(con
   return spProvider;
 }
 
-std::shared_ptr<opentelemetry::trace::Tracer> GetTracer(std::string tracerName)
+opentelemetry::nostd::shared_ptr<opentelemetry::trace::Tracer> GetTracer(std::string tracerName)
 {
   auto provider = opentelemetry::trace::Provider::GetTracerProvider();
   return provider->GetTracer(tracerName);
@@ -197,7 +197,7 @@ void TestOtlpExporter()
   auto traceProvider = LkLab::CreateOtlpTraceProvider("LkLab-OTLP-InsideOTelCpp");
   // Set the global trace provider
   opentelemetry::sdk::trace::Provider::SetTracerProvider(traceProvider);
-  std::shared_ptr<opentelemetry::trace::Tracer> tracer =
+  opentelemetry::nostd::shared_ptr<opentelemetry::trace::Tracer> tracer =
       LkLab::GetTracer("InstrScope-Main-Otlp");
 
   // auto logger = InitLogger();
@@ -247,7 +247,7 @@ int main()
 int main_org()
 {
   opentelemetry::nostd::shared_ptr<opentelemetry::trace::Tracer> tracerFoo = InitTracer();
-  std::shared_ptr<opentelemetry::trace::Tracer> tracer = InitTracer();
+  opentelemetry::nostd::shared_ptr<opentelemetry::trace::Tracer> tracer = InitTracer();
   auto logger = InitLogger();
 
   auto s1 = tracer->StartSpan("main");
